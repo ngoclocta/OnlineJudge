@@ -1,7 +1,5 @@
 FROM alpine:3.19 AS downloader
-
 WORKDIR /app
-
 RUN <<EOS
 set -ex
 apk add unzip
@@ -9,14 +7,11 @@ wget https://github.com/QingdaoU/OnlineJudgeFE/releases/download/oj_2.7.5/dist.z
 unzip dist.zip
 rm -f dist.zip
 EOS
-
 FROM python:3.12-alpine
 ARG TARGETARCH
 ARG TARGETVARIANT
-
 ENV OJ_ENV production
 WORKDIR /app
-
 COPY ./deploy/requirements.txt /app/deploy/
 # psycopg2: libpg-dev
 # pillow: libjpeg-turbo-dev zlib-dev freetype-dev
@@ -28,7 +23,6 @@ apk add gcc libc-dev python3-dev libpq libpq-dev libjpeg-turbo libjpeg-turbo-dev
 pip install -r /app/deploy/requirements.txt
 apk del gcc libc-dev python3-dev libpq-dev libjpeg-turbo-dev zlib-dev freetype-dev
 EOS
-
 COPY ./ /app/
 COPY --from=downloader --link /app/dist/ /app/dist/
 RUN chmod -R u=rwX,go=rX ./ && chmod +x ./deploy/entrypoint.sh
